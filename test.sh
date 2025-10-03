@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# === Variablen ===
+MY_ONECLICK_REPO="https://tbotteam.github.io/one-click-apps"
+API_ENDPOINT="http://localhost:3000/api/v2/user/apps/appDefinitions"
+
 # === Systemupdate ===
 apt update && apt upgrade -y
 
@@ -13,7 +17,9 @@ ufw allow 80,443,3000,996,7946,4789,2377/tcp
 ufw allow 7946,4789,2377/udp
 ufw --force enable
 
+
 # === CapRover starten ===
+echo "➡️ Starte CapRover..."
 docker run -d \
   --name caprover \
   --restart=always \
@@ -21,36 +27,28 @@ docker run -d \
   -p 443:443 \
   -p 3000:3000 \
   -e ACCEPTED_TERMS=true \
-  -e CAPROVER_ROOT_PASS="uncoded" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /captain:/captain \
   caprover/caprover
 
-# === Nginx installieren ===
-apt-get install -y nginx
+# === Warte bis CapRover API verfügbar ist ===
+echo "⏳ Warte bis CapRover API hochgefahren ist..."
+while true; do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$API_ENDPOINT" || true)
+  if [ "$STATUS" != "000" ]; then
+    echo "→ API erreichbar (HTTP $STATUS)"
+    break
+  fi
+  sleep 5
+done
 
-# === Nginx Config: Redirect von CapRover OneClick auf dein Repo ===
-cat > /etc/nginx/sites-available/caprover-oneclick <<EOF
-server {
-    listen 80;
-    server_name raw.githubusercontent.com;
+# === OneClick-App Repo setzen ===
+echo "➡️ Überschreibe OneClick-App Repo mit deinem Repo..."
+curl -s -X POST "$API_ENDPOINT" \
+  -H "x-namespace: captain" \
+  -H "x-captain-auth: captain42" \
+  -H "Content-Type: application/json" \
+  -d "{\"repos\":[\"$MY_ONECLICK_REPO\"]}"
 
-    location /caprover/one-click-apps/master/public/v4/apps.json {
-        proxy_pass https://tbotteam.github.io/one-click-apps/apps.json;
-    }
-}
-EOF
+echo "✅ Setup abgeschlossen!"
 
-ln -sf /etc/nginx/sites-available/caprover-oneclick /etc/nginx/sites-enabled/caprover-oneclick
-nginx -t && systemctl reload nginx
-
-# === Hosts-Eintrag für raw.githubusercontent.com auf lokalen Nginx umleiten ===
-if ! grep -q "raw.githubusercontent.com" /etc/hosts; then
-  echo "127.0.0.1 raw.githubusercontent.com" >> /etc/hosts
-fi
-
-# === Testausgabe ===
-echo "➡️ Test Redirect:"
-curl -s http://raw.githubusercontent.com/caprover/one-click-apps/master/public/v4/apps.json | head -n 20
-
-echo "✅ Fertig! CapRover läuft mit Passwort 'uncoded' und lädt nur dein eigenes OneClick-Repo."

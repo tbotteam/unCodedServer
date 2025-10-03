@@ -15,12 +15,12 @@ ufw --force enable
 
 # CapRover starten
 docker run -d \
-  --name uncodedserver \
+  --name caprover \
   --restart=always \
   -p 80:80 \
   -p 443:443 \
   -p 3000:3000 \
   -e ACCEPTED_TERMS=true \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /tbotteam:/tbotteam \
-  tbotteam/uncodedserver:latest
+  -v /captain:/captain \
+  caprover/caprover

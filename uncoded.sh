@@ -22,5 +22,5 @@ docker run -d \
   -p 3000:3000 \
   -e ACCEPTED_TERMS=true \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /tbotteam:/tbotteam \
-  tbotteam/caprover-uncoded
+  -v /captain:/captain \
+  tbotteam/caprover-uncoded:latest

@@ -10,7 +10,7 @@ curl -fsSL https://get.docker.com | sh
 # Firewall-Regeln (UFW)
 ufw allow 22/tcp
 ufw allow 80,443,3000,996,7946,4789,2377/tcp
-ufw allow 3001:3100/tcp
+ufw allow 4000:4100/tcp
 ufw allow 7946,4789,2377/udp
 ufw --force enable
 

@@ -21,7 +21,7 @@ docker run -d \
   -p 80:80 \
   -p 443:443 \
   -p 3000:3000 \
-  -p 4000:4000 \
+  -p 4000-4010:4000-4010 \
   -e ACCEPTED_TERMS=true \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /captain:/captain \

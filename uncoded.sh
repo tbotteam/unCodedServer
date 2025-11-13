@@ -25,4 +25,4 @@ docker run -d \
   -e ACCEPTED_TERMS=true \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /captain:/captain \
-  tbotteam/caprover-full:latest
+  tbotteam/caprover-full:1.14.1
